@@ -7,7 +7,7 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(__dirname));
 app.use(express.json());
 
 // ─── Game Rounds Configuration ──────────────────────────────────────────────────
@@ -119,7 +119,8 @@ let gameState = {
     { name: 'Table 4', score: 0 },
     { name: 'Table 5', score: 0 },
   ],
-  roundContent: ROUNDS[0]  // Embed dynamic content
+  roundContent: ROUNDS[0],  // Embed dynamic content
+  tableAssignments: {}     // tableId -> voterId
 };
 
 // ─── Broadcast helpers ─────────────────────────────────────────────────────────
@@ -212,6 +213,14 @@ app.post('/api/update-teams', (req, res) => {
     });
   }
 
+  // Clean up table assignments that are now out of bounds
+  for (const tableId of Object.keys(gameState.tableAssignments)) {
+    const tId = parseInt(tableId);
+    if (tId > num) {
+      delete gameState.tableAssignments[tableId];
+    }
+  }
+
   broadcastState();
   res.json({ ok: true, count: num });
 });
@@ -224,6 +233,7 @@ app.post('/api/reset', (req, res) => {
   gameState.timerStart = null;
   gameState.leaderboard = gameState.leaderboard.map(t => ({ ...t, score: 0 }));
   gameState.roundContent = ROUNDS[0];
+  gameState.tableAssignments = {};
   
   broadcastState();
   res.json({ ok: true });
@@ -252,6 +262,60 @@ app.post('/api/vote', (req, res) => {
   res.json({ ok: true });
 });
 
+app.post('/api/select-table', (req, res) => {
+  const { voterId, tableId } = req.body;
+  if (!voterId || !tableId) {
+    return res.status(400).json({ error: 'Missing voterId or tableId' });
+  }
+
+  // Ensure tableId is in bounds
+  const tableIdx = parseInt(tableId) - 1;
+  if (isNaN(tableIdx) || tableIdx < 0 || tableIdx >= gameState.leaderboard.length) {
+    return res.status(400).json({ error: 'Invalid tableId' });
+  }
+
+  // Check if this table is already assigned to a different voter
+  const currentAssignee = gameState.tableAssignments[tableId];
+  if (currentAssignee && currentAssignee !== voterId) {
+    return res.status(409).json({ error: 'Table is already selected by another player.' });
+  }
+
+  // Release any tables previously occupied by this voterId
+  for (const [tid, vid] of Object.entries(gameState.tableAssignments)) {
+    if (vid === voterId) {
+      delete gameState.tableAssignments[tid];
+    }
+  }
+
+  // Assign the new table
+  gameState.tableAssignments[tableId] = voterId;
+  console.log(`Table ${tableId} assigned to voter ${voterId}`);
+
+  broadcastState();
+  res.json({ ok: true });
+});
+
+app.post('/api/deselect-table', (req, res) => {
+  const { voterId } = req.body;
+  if (!voterId) {
+    return res.status(400).json({ error: 'Missing voterId' });
+  }
+
+  let released = false;
+  for (const [tid, vid] of Object.entries(gameState.tableAssignments)) {
+    if (vid === voterId) {
+      delete gameState.tableAssignments[tid];
+      released = true;
+      console.log(`Table ${tid} manually deselected by voter ${voterId}`);
+    }
+  }
+
+  if (released) {
+    broadcastState();
+  }
+  res.json({ ok: true });
+});
+
 app.get('/api/state', (req, res) => {
   res.json({ ...gameState, voterIds: Array.from(gameState.voterIds) });
 });
@@ -260,6 +324,45 @@ app.get('/api/state', (req, res) => {
 wss.on('connection', (ws) => {
   const payload = { ...gameState, voterIds: Array.from(gameState.voterIds) };
   ws.send(JSON.stringify({ type: 'STATE_UPDATE', state: payload }));
+
+  ws.on('message', (message) => {
+    try {
+      const data = JSON.parse(message);
+      if (data.type === 'REGISTER') {
+        ws.voterId = data.voterId;
+        console.log(`Voter registered: ${ws.voterId}`);
+      }
+    } catch (e) {
+      console.error('Failed to parse WebSocket message:', e);
+    }
+  });
+
+  ws.on('close', () => {
+    if (ws.voterId) {
+      console.log(`Voter connection closed: ${ws.voterId}`);
+      // Count open connections remaining for this voterId
+      let openConnections = 0;
+      wss.clients.forEach(client => {
+        if (client !== ws && client.readyState === WebSocket.OPEN && client.voterId === ws.voterId) {
+          openConnections++;
+        }
+      });
+
+      if (openConnections === 0) {
+        let changed = false;
+        for (const [tableId, assignedVoterId] of Object.entries(gameState.tableAssignments)) {
+          if (assignedVoterId === ws.voterId) {
+            delete gameState.tableAssignments[tableId];
+            console.log(`Released Table ${tableId} because voter ${ws.voterId} disconnected`);
+            changed = true;
+          }
+        }
+        if (changed) {
+          broadcastState();
+        }
+      }
+    }
+  });
 });
 
 // ─── Start ─────────────────────────────────────────────────────────────────────
