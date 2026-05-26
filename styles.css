@@ -1,0 +1,257 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap');
+
+/* ── Reset & Base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-900:  #070F26; /* Smart Navy */
+  --bg-800:  #0d1733; /* Slightly lighter navy for cards/panels */
+  --bg-700:  #132047; /* Mid-tone navy for borders/inner cards */
+  --bg-600:  #1b2c5c;
+  --bg-500:  #005B96; /* Future Blue 150 */
+  --accent:  #0072BC; /* Future Blue */
+  --accent-bright: #19A3FC; /* Future Blue 50 */
+  --accent-dim:    #005B96; /* Future Blue 150 */
+  --green:   #00CB5D; /* Green */
+  --green-dim: #007a38;
+  --red:     #E42600; /* Orange 100 */
+  --red-dim: #8b1700;
+  --amber:   #FF7A00; /* Orange */
+  --yellow:  #FFC400; /* Yellow */
+  --turquoise: #00DFED; /* Turquoise */
+  --text-primary:   #FFFFFF; /* White */
+  --text-secondary: #E8E8E8; /* Gray 50 */
+  --text-muted:     #8FA4B5; /* Legible Slate Gray for dark contrast */
+  --text-dark:      #2E404D; /* Text Gray */
+  --border:  #132047;
+  --radius:  8px;
+  
+  --font-sans: 'Noto Sans', Arial, sans-serif;
+  --font-serif: 'Noto Serif', Georgia, serif;
+}
+
+body {
+  background: var(--bg-900);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+}
+
+/* ── Typography ── */
+h1 { font-family: var(--font-serif); font-size: 2rem;   font-weight: 700; line-height: 1.2; }
+h2 { font-family: var(--font-serif); font-size: 1.5rem; font-weight: 700; line-height: 1.3; }
+h3 { font-family: var(--font-serif); font-size: 1.1rem; font-weight: 600; line-height: 1.4; }
+p  { line-height: 1.7; }
+
+.label {
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.badge {
+  font-family: var(--font-sans);
+  display: inline-block;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+.badge-red    { background: var(--red-dim);   color: #ffc4c4; border: 1px solid var(--red); }
+.badge-blue   { background: var(--bg-500);    color: var(--accent-bright); border: 1px solid var(--accent); }
+.badge-green  { background: var(--green-dim); color: #d1fae5; border: 1px solid var(--green); }
+.badge-amber  { background: #5c2c00;           color: #ffe0b3; border: 1px solid var(--amber); }
+
+/* ── Card ── */
+.card {
+  background: var(--bg-700);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+}
+
+/* ── Divider ── */
+.divider { height: 1px; background: var(--border); margin: 12px 0; }
+
+/* ── Buttons ── */
+.btn {
+  font-family: var(--font-sans);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-700);
+  color: var(--accent-bright);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  text-align: left;
+  line-height: 1.4;
+}
+.btn:hover:not(:disabled) {
+  background: var(--bg-500);
+  border-color: var(--accent);
+  color: #fff;
+}
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn.active   { background: var(--bg-500); border-color: var(--accent); }
+
+.btn-danger {
+  border-color: var(--red-dim);
+  color: #ffbaba;
+  background: #210502;
+}
+.btn-danger:hover:not(:disabled) { background: var(--red-dim); border-color: var(--red); color: #fff; }
+
+.btn-success {
+  border-color: var(--green-dim);
+  color: #b5ffd2;
+  background: #001f0c;
+}
+.btn-success:hover:not(:disabled) { background: var(--green-dim); border-color: var(--green); color: #fff; }
+
+/* ── Option rows ── */
+.option-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-800);
+  margin-bottom: 8px;
+}
+.option-row.winner { border-color: var(--green); background: #00260f; }
+
+.opt-letter {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-bright);
+  min-width: 16px;
+  padding-top: 2px;
+}
+.opt-text {
+  flex: 1;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.opt-pts {
+  font-family: var(--font-serif);
+  font-size: 0.9rem;
+  font-weight: 600;
+  min-width: 54px;
+  text-align: right;
+  padding-top: 2px;
+}
+.pts-100 { color: var(--green); }
+.pts-75  { color: var(--turquoise); }
+.pts-50  { color: var(--amber); }
+.pts-25  { color: var(--yellow); }
+.pts-0   { color: var(--red); }
+
+/* ── Bar chart ── */
+.bar-wrap { margin-bottom: 12px; }
+.bar-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 5px;
+}
+.bar-track {
+  width: 100%;
+  height: 28px;
+  background: var(--bg-800);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width 0.7s cubic-bezier(.4,0,.2,1);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 8px;
+  min-width: 0;
+}
+.bar-fill.winner-bar { background: var(--green); }
+.bar-fill-inner { font-size: 0.7rem; font-weight: 600; color: #fff; }
+
+/* ── Timer ── */
+.timer {
+  font-family: var(--font-serif);
+  font-size: 5rem;
+  font-weight: 700;
+  color: var(--accent-bright);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -3px;
+  line-height: 1;
+}
+.timer.warn   { color: var(--amber); }
+.timer.danger { color: var(--red); }
+
+/* ── SAP boxes ── */
+.tax-box {
+  background: #210502;
+  border: 1px solid var(--red-dim);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+.sap-box {
+  background: #001f0c;
+  border: 1px solid var(--green-dim);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+}
+
+/* ── Leaderboard ── */
+.lb-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-800);
+  margin-bottom: 8px;
+}
+.lb-row.first { border-color: var(--green); background: #001f0c; }
+.lb-rank { font-size: 1rem; min-width: 28px; }
+.lb-name { flex: 1; font-size: 0.85rem; color: var(--text-primary); }
+.lb-score { font-family: var(--font-serif); font-size: 1.1rem; font-weight: 600; color: var(--accent-bright); }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg-500); border-radius: 2px; }
+
+/* ── Brand Logo Wrapper ── */
+.logo-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  height: 48px;
+  position: relative;
+}
+.logo-wrap img {
+  height: 100%;
+  width: auto;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}

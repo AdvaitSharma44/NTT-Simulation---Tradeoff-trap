@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Trade-Off Trap — Player</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      background: var(--bg-900);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 16px 28px;
+      overflow-y: auto;
+      font-family: var(--font-sans);
+    }
+
+    /* ── Header ── */
+    .player-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      flex-shrink: 0;
+    }
+    .player-logo {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .player-logo span { color: var(--accent-bright); }
+
+    .header-chips {
+      display: flex;
+      gap: 6px;
+    }
+
+    .round-chip {
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: var(--bg-600);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+    
+    .team-badge {
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: var(--bg-500);
+      border: 1px solid var(--accent);
+      color: var(--accent-bright);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .team-badge:hover {
+      background: var(--accent);
+      border-color: var(--accent-bright);
+    }
+
+    /* ── Lock screen ── */
+    .lock-screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 12px;
+      padding: 32px 16px;
+      min-height: 380px;
+    }
+    .lock-icon { font-size: 2.5rem; color: var(--text-muted); }
+    .lock-title {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      max-width: 200px;
+    }
+    .lock-sub {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    /* ── Voting screen ── */
+    .crisis-label {
+      font-size: 0.55rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .crisis-label::before {
+      content: '';
+      display: inline-block;
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--red);
+      animation: pulse 1.2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    .crisis-text {
+      font-family: var(--font-serif);
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      line-height: 1.65;
+      border-left: 2px solid var(--red);
+      padding-left: 12px;
+      margin-bottom: 18px;
+    }
+
+    .vote-prompt {
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .vote-btn {
+      width: 100%;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg-700);
+      color: var(--text-primary);
+      font-size: 0.8rem;
+      font-family: inherit;
+      line-height: 1.55;
+      cursor: pointer;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      text-align: left;
+      transition: background 0.15s, border-color 0.15s, transform 0.08s;
+    }
+    .vote-btn:hover {
+      background: var(--bg-500);
+      border-color: var(--accent);
+    }
+    .vote-btn:active {
+      transform: scale(0.985);
+    }
+    .vote-btn .v-letter {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent-bright);
+      padding-top: 1px;
+      min-width: 14px;
+    }
+
+    /* ── Submitted ── */
+    .submitted-screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      text-align: center;
+      min-height: 300px;
+    }
+    .submitted-icon { font-size: 3rem; }
+    .submitted-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--green);
+    }
+    .submitted-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      max-width: 180px;
+    }
+
+    /* ── Timer chip ── */
+    .timer-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-600);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--accent-bright);
+      font-variant-numeric: tabular-nums;
+      margin-bottom: 16px;
+    }
+    .timer-chip.warn   { color: var(--amber); border-color: var(--amber); }
+    .timer-chip.danger { color: var(--red);   border-color: var(--red); }
+
+    /* ── Table Selection ── */
+    .selection-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    
+    .table-select-card {
+      background: var(--bg-700);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .table-select-card:hover {
+      background: var(--bg-500);
+      border-color: var(--accent-bright);
+      transform: translateY(-2px);
+    }
+    
+    .table-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .table-num {
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--accent-bright);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    
+    .table-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .select-arrow {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+    }
+    .table-select-card:hover .select-arrow {
+      color: var(--accent-bright);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="player-header">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <div class="logo-wrap" style="height: 32px;">
+        <img src="ntt-logo.png" alt="NTT DATA Logo" onload="autoCropLogo(this)">
+      </div>
+      <div class="player-logo">Trade-Off <span>Trap</span></div>
+    </div>
+    <div class="header-chips">
+      <div class="team-badge" id="team-badge" style="display: none;" onclick="resetTableSelection()" title="Click to change table">No Table</div>
+      <div class="round-chip" id="round-badge">Round 1</div>
+    </div>
+  </div>
+
+  <div id="player-content"></div>
+
+<script>
+  // ── Dynamic Logo Auto-Crop & Transparency ──────────────────────────────────
+  function autoCropLogo(img) {
+    if (img.dataset.cropped === "true") return;
+    const tempImg = new Image();
+    tempImg.crossOrigin = "anonymous";
+    tempImg.src = img.src;
+    tempImg.onload = function() {
+      const canvas = document.createElement('canvas');
+      canvas.width = tempImg.width;
+      canvas.height = tempImg.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(tempImg, 0, 0);
+      let imgData;
+      try { imgData = ctx.getImageData(0, 0, canvas.width, canvas.height); } catch (e) { return; }
+      const data = imgData.data;
+      let minX = canvas.width, minY = canvas.height, maxX = 0, maxY = 0;
+      const threshold = 30;
+      for (let y = 0; y < canvas.height; y++) {
+        for (let x = 0; x < canvas.width; x++) {
+          const idx = (y * canvas.width + x) * 4;
+          if (data[idx] > threshold || data[idx+1] > threshold || data[idx+2] > threshold) {
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+          } else { data[idx+3] = 0; }
+        }
+      }
+      if (maxX >= minX && maxY >= minY) {
+        ctx.putImageData(imgData, 0, 0);
+        const croppedCanvas = document.createElement('canvas');
+        const pad = 6;
+        const cropX = Math.max(0, minX - pad);
+        const cropY = Math.max(0, minY - pad);
+        const cropW = Math.min(canvas.width - cropX, (maxX - minX) + 2 * pad);
+        const cropH = Math.min(canvas.height - cropY, (maxY - minY) + 2 * pad);
+        croppedCanvas.width = cropW;
+        croppedCanvas.height = cropH;
+        croppedCanvas.getContext('2d').drawImage(canvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+        img.dataset.cropped = "true";
+        img.src = croppedCanvas.toDataURL();
+        img.style.transform = 'none';
+        img.style.width = 'auto';
+        img.style.height = '100%';
+        img.style.objectFit = 'contain';
+        img.style.opacity = '1';
+        const parent = img.parentElement;
+        if (parent && parent.classList.contains('logo-wrap')) {
+          parent.style.width = 'auto';
+          parent.style.maxWidth = '150px';
+        }
+      }
+    };
+  }
+
+  // ── Voter ID (persisted per browser session) ─────────────────────────────────
+  let voterId = sessionStorage.getItem('voterId');
+  if (!voterId) {
+    voterId = 'voter_' + Math.random().toString(36).slice(2,10);
+    sessionStorage.setItem('voterId', voterId);
+  }
+
+
+  let hasVoted    = false;
+  let timerInterval = null;
+  let serverTimerStart = null;
+  let timerDuration = 300;
+  let activeState = null;
+
+  function startLocalTimer(start, dur) {
+    serverTimerStart = start;
+    timerDuration = dur;
+    clearInterval(timerInterval);
+    timerInterval = setInterval(tickTimer, 300);
+  }
+
+  function stopTimer() {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+
+  function tickTimer() {
+    const el = document.getElementById('player-timer');
+    if (!el) return;
+    const elapsed = (Date.now() - serverTimerStart) / 1000;
+    const remaining = Math.max(0, timerDuration - elapsed);
+    const m = Math.floor(remaining / 60);
+    const s = Math.floor(remaining % 60);
+    el.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+    el.parentElement.className = 'timer-chip' +
+      (remaining<=30?' danger': remaining<=60?' warn':'');
+    if (remaining <= 0) stopTimer();
+  }
+
+  // ── Table Selection Logic ───────────────────────────────────────────────────
+  function selectTable(tableId) {
+    sessionStorage.setItem('tableId', tableId);
+    render(activeState); // Re-render with new table context
+  }
+
+  function renderTableSelection() {
+    stopTimer();
+    const pc = document.getElementById('player-content');
+    const badge = document.getElementById('team-badge');
+    badge.style.display = 'none';
+    
+    let html = `
+      <div style="text-align: center; margin: 20px 0 10px;">
+        <h3 style="color: var(--text-primary); margin-bottom: 4px;">Identify Your Table</h3>
+        <p style="font-size: 0.75rem; color: var(--text-muted);">Please select which table team you are representing.</p>
+      </div>
+      <div class="selection-grid" style="max-height: 52vh; overflow-y: auto; padding-right: 4px; border: 1px solid var(--border); border-radius: 8px; padding: 6px;">
+    `;
+
+    if (activeState && activeState.leaderboard) {
+      activeState.leaderboard.forEach((t, index) => {
+        const id = (index + 1).toString();
+        html += `
+          <div class="table-select-card" onclick="selectTable('${id}')" style="padding: 14px 18px; margin-bottom: 8px;">
+            <div class="table-info">
+              <span class="table-name" style="font-size: 1.05rem; font-weight: 600; color: var(--text-primary);">${t.name}</span>
+            </div>
+            <span class="select-arrow" style="color: var(--accent-bright); font-size: 1.1rem;">➔</span>
+          </div>
+        `;
+      });
+      
+      if (activeState.leaderboard.length > 5) {
+        html += `
+          <div style="text-align: center; font-size: 0.75rem; color: var(--accent-bright); margin: 12px 0 4px; font-weight: 600; animation: pulse 1.5s infinite;">
+            ↕ Scroll down to view all ${activeState.leaderboard.length} tables ↕
+          </div>
+        `;
+      }
+    } else {
+      html += `<div style="text-align: center; color: var(--text-muted); font-size: 0.8rem;">Loading tables...</div>`;
+    }
+
+    html += `</div>`;
+    pc.innerHTML = html;
+  }
+
+  // ── Vote submission ──────────────────────────────────────────────────────────
+  async function castVote(letter) {
+    const tableId = sessionStorage.getItem('tableId');
+    if (hasVoted || !tableId || !activeState) return;
+    
+    try {
+      const res = await fetch('/api/vote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ voterId, tableId, option: letter })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        hasVoted = true;
+        sessionStorage.setItem('voted_r' + activeState.currentRound, '1');
+        renderVotingScreen(); // re-render with submitted state
+      } else {
+        alert(data.error || 'Could not submit vote. Please try again.');
+      }
+    } catch {
+      alert('Connection error. Please retry.');
+    }
+  }
+
+  // ── Render functions ─────────────────────────────────────────────────────────
+  function renderLockScreen(extra) {
+    stopTimer();
+    const pc = document.getElementById('player-content');
+    pc.innerHTML = `
+      <div class="lock-screen">
+        <div class="lock-icon">🔒</div>
+        <div class="lock-title">Please look at the main screen for results.</div>
+        ${extra ? `<div class="lock-sub">${extra}</div>` : ''}
+      </div>`;
+  }
+
+  function renderVotingScreen() {
+    const pc = document.getElementById('player-content');
+    const roundContent = activeState.roundContent;
+
+    if (hasVoted) {
+      pc.innerHTML = `
+        <div class="submitted-screen">
+          <div class="submitted-icon">✅</div>
+          <div class="submitted-title">Vote Submitted!</div>
+          <div class="submitted-sub">Your strategy has been recorded. Watch the main screen for the reveal.</div>
+        </div>`;
+      return;
+    }
+
+    let html = `
+      <div class="timer-chip" id="timer-chip">
+        <span>⏱</span>
+        <span id="player-timer">5:00</span>
+      </div>
+      <div class="crisis-label">Active Crisis</div>
+      <div class="crisis-text">${roundContent.crisis}</div>
+      <div class="vote-prompt">Select your table's strategy</div>`;
+
+    roundContent.options.forEach(o => {
+      html += `<button class="vote-btn" onclick="castVote('${o.letter}')">
+        <span class="v-letter">${o.letter}</span>
+        <span>${o.text}</span>
+      </button>`;
+    });
+
+    pc.innerHTML = html;
+
+    // Start the timer display
+    if (serverTimerStart) startLocalTimer(serverTimerStart, timerDuration);
+  }
+
+  function resetTableSelection() {
+    sessionStorage.removeItem('tableId');
+    render(activeState);
+  }
+
+  function render(state) {
+    activeState = state;
+    if (!state) return;
+
+    // Sync header badges
+    document.getElementById('round-badge').textContent = `Round ${state.currentRound}`;
+    
+    const tableId = sessionStorage.getItem('tableId');
+    
+    // Safety check: if stored table index is now out of bounds due to a team update, reset it
+    if (tableId && state.leaderboard) {
+      const idx = parseInt(tableId) - 1;
+      if (idx < 0 || idx >= state.leaderboard.length) {
+        sessionStorage.removeItem('tableId');
+        renderTableSelection();
+        return;
+      }
+    }
+
+    const badge = document.getElementById('team-badge');
+    if (tableId) {
+      let resolvedName = `Table ${tableId}`;
+      if (state.leaderboard && state.leaderboard[tableId - 1]) {
+        resolvedName = state.leaderboard[tableId - 1].name;
+      }
+      badge.textContent = resolvedName;
+      badge.style.display = 'inline-block';
+    } else {
+      renderTableSelection();
+      return;
+    }
+
+    const p = state.phase;
+
+    // Dynamic voted state tracking per round
+    const storageKey = 'voted_r' + state.currentRound;
+    if (p === 'VOTING' && !sessionStorage.getItem(storageKey)) {
+      hasVoted = false;
+    } else if (sessionStorage.getItem(storageKey) === '1') {
+      hasVoted = true;
+    }
+
+    if (p === 'IDLE') {
+      hasVoted = false;
+      sessionStorage.removeItem(storageKey);
+    }
+
+    if (p === 'VOTING') {
+      if (state.timerStart) startLocalTimer(state.timerStart, state.timerDuration || 300);
+      renderVotingScreen();
+    } else if (p === 'LEADERBOARD') {
+      renderLockScreen(state.currentRound >= 5 ? 'Simulation complete!' : `Round ${state.currentRound} complete!`);
+    } else {
+      renderLockScreen();
+    }
+  }
+
+  // ── WebSocket ────────────────────────────────────────────────────────────────
+  let ws;
+  function connectWS() {
+    ws = new WebSocket(`ws://${location.host}`);
+    ws.onmessage = (e) => {
+      const { type, state } = JSON.parse(e.data);
+      if (type === 'STATE_UPDATE') render(state);
+    };
+    ws.onclose = () => setTimeout(connectWS, 2000);
+  }
+  connectWS();
+
+  // Initial lock screen while connecting
+  renderLockScreen('Connecting…');
+</script>
+</body>
+</html>

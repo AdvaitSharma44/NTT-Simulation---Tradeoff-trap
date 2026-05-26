@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trade-Off Trap — Display Screen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      background: var(--bg-900);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 28px 32px;
+      overflow-y: auto;
+      font-family: var(--font-sans);
+    }
+
+    /* ── Header bar ── */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      flex-shrink: 0;
+    }
+    .game-logo {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .game-logo span { color: var(--accent-bright); }
+
+    .phase-tag {
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 4px;
+      background: var(--bg-600);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+    .phase-tag.voting  { background: var(--bg-500); border-color: var(--accent); color: var(--accent-bright); }
+    .phase-tag.reveal  { background: #001f0c; border-color: var(--green); color: #d1fae5; }
+    .phase-tag.sap     { background: #5c2c00; border-color: var(--amber); color: #ffe0b3; }
+    .phase-tag.lb      { background: #004b50; border-color: var(--turquoise); color: #b5f9fd; }
+
+    /* ── Crisis block ── */
+    .crisis-label {
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .crisis-label::before {
+      content: '';
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--red);
+      animation: pulse 1.2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    .crisis-text {
+      font-family: var(--font-serif);
+      font-size: 1.05rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      line-height: 1.65;
+      border-left: 3px solid var(--red);
+      padding-left: 16px;
+      margin-bottom: 24px;
+    }
+
+    /* ── Timer ── */
+    .timer-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 20px 0 28px;
+    }
+    .timer-label-small {
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .timer {
+      font-size: 4.5rem;
+      font-weight: 700;
+      color: var(--accent-bright);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -3px;
+      line-height: 1;
+    }
+    .timer.warn   { color: var(--amber); }
+    .timer.danger { color: var(--red); }
+
+    /* ── Options section ── */
+    .options-label {
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    /* ── Bar chart ── */
+    .chart-section { margin: 20px 0 0; }
+    .chart-title {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* ── SAP section ── */
+    .sap-section { margin-top: 12px; }
+    .sap-label {
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .sap-body {
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    /* ── Leaderboard ── */
+    .lb-title {
+      font-family: var(--font-serif);
+      font-size: 1.4rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 20px;
+      color: var(--text-primary);
+    }
+
+    /* Compact styling for dynamic team scaling */
+    .lb-row.compact {
+      padding: 6px 12px;
+      margin-bottom: 4px;
+    }
+    .lb-row.compact .lb-rank {
+      font-size: 0.85rem;
+      min-width: 24px;
+    }
+    .lb-row.compact .lb-name {
+      font-size: 0.75rem;
+    }
+    .lb-row.compact .lb-score {
+      font-size: 0.9rem;
+    }
+
+    /* ── IDLE state ── */
+    .idle-screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 12px;
+      padding: 40px;
+    }
+    .idle-icon { font-size: 3rem; margin-bottom: 8px; }
+    .idle-title { font-family: var(--font-serif); font-size: 1.6rem; font-weight: 700; color: var(--text-primary); }
+    .idle-sub   { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* ── Round badge ── */
+    .round-badge {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    #main-content { flex: 1; }
+  </style>
+</head>
+<body>
+
+  <div class="top-bar">
+    <div style="display: flex; align-items: center; gap: 18px;">
+      <div class="logo-wrap" style="height: 56px;">
+        <img src="ntt-logo.png" alt="NTT DATA Logo" onload="autoCropLogo(this)">
+      </div>
+      <div class="game-logo">The <span>Trade-Off Trap</span> · Business Strategy Simulation</div>
+    </div>
+    <div class="phase-tag" id="phase-tag">IDLE</div>
+  </div>
+
+  <div id="main-content"></div>
+
+<script>
+  // ── Dynamic Logo Auto-Crop & Transparency ──────────────────────────────────
+  function autoCropLogo(img) {
+    if (img.dataset.cropped === "true") return;
+    const tempImg = new Image();
+    tempImg.crossOrigin = "anonymous";
+    tempImg.src = img.src;
+    tempImg.onload = function() {
+      const canvas = document.createElement('canvas');
+      canvas.width = tempImg.width;
+      canvas.height = tempImg.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(tempImg, 0, 0);
+      let imgData;
+      try { imgData = ctx.getImageData(0, 0, canvas.width, canvas.height); } catch (e) { return; }
+      const data = imgData.data;
+      let minX = canvas.width, minY = canvas.height, maxX = 0, maxY = 0;
+      const threshold = 30;
+      for (let y = 0; y < canvas.height; y++) {
+        for (let x = 0; x < canvas.width; x++) {
+          const idx = (y * canvas.width + x) * 4;
+          if (data[idx] > threshold || data[idx+1] > threshold || data[idx+2] > threshold) {
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+          } else { data[idx+3] = 0; }
+        }
+      }
+      if (maxX >= minX && maxY >= minY) {
+        ctx.putImageData(imgData, 0, 0);
+        const croppedCanvas = document.createElement('canvas');
+        const pad = 8;
+        const cropX = Math.max(0, minX - pad);
+        const cropY = Math.max(0, minY - pad);
+        const cropW = Math.min(canvas.width - cropX, (maxX - minX) + 2 * pad);
+        const cropH = Math.min(canvas.height - cropY, (maxY - minY) + 2 * pad);
+        croppedCanvas.width = cropW;
+        croppedCanvas.height = cropH;
+        croppedCanvas.getContext('2d').drawImage(canvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+        img.dataset.cropped = "true";
+        img.src = croppedCanvas.toDataURL();
+        img.style.transform = 'none';
+        img.style.width = 'auto';
+        img.style.height = '100%';
+        img.style.objectFit = 'contain';
+        img.style.opacity = '1';
+        const parent = img.parentElement;
+        if (parent && parent.classList.contains('logo-wrap')) {
+          parent.style.width = 'auto';
+          parent.style.maxWidth = '250px';
+        }
+      }
+    };
+  }
+
+  // ── Timer state ─────────────────────────────────────────────────────────────
+  let timerInterval = null;
+  let serverTimerStart = null;
+  let timerDuration = 300;
+
+  function startLocalTimer(start, dur) {
+    serverTimerStart = start;
+    timerDuration = dur;
+    clearInterval(timerInterval);
+    timerInterval = setInterval(tickTimer, 250);
+  }
+
+  function stopTimer() {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+
+  function tickTimer() {
+    const el = document.getElementById('timer-val');
+    if (!el) return;
+    const elapsed = (Date.now() - serverTimerStart) / 1000;
+    const remaining = Math.max(0, timerDuration - elapsed);
+    const m = Math.floor(remaining / 60);
+    const s = Math.floor(remaining % 60);
+    el.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+    el.className = 'timer' + (remaining <= 30 ? ' danger' : remaining <= 60 ? ' warn' : '');
+    if (remaining <= 0) stopTimer();
+  }
+
+  // ── Render ──────────────────────────────────────────────────────────────────
+  function render(state) {
+    const p = state.phase;
+    const mc = document.getElementById('main-content');
+    const pt = document.getElementById('phase-tag');
+    const roundContent = state.roundContent;
+
+    if (!roundContent) return;
+
+    // Phase tag styling
+    pt.textContent = p;
+    pt.className = 'phase-tag' +
+      (p==='VOTING'?        ' voting'  :
+       p==='GRAPH_REVEAL'|| p==='SCORE_REVEAL' ? ' reveal' :
+       p==='SAP_REVEAL'?    ' sap'     :
+       p==='LEADERBOARD'?   ' lb'      : '');
+
+    // ── IDLE ──
+    if (p === 'IDLE') {
+      stopTimer();
+      mc.innerHTML = `
+        <div class="idle-screen">
+          <div class="idle-icon">⚡</div>
+          <div class="idle-title">The Trade-Off Trap</div>
+          <div class="idle-sub">Round ${state.currentRound} · ${roundContent.theme}</div>
+          <div style="margin:24px 0;width:100%;max-width:560px;">
+            <div class="crisis-label">Active Crisis</div>
+            <div class="crisis-text">${roundContent.crisis}</div>
+          </div>
+          <div style="font-size:0.75rem;color:var(--text-muted);">Waiting for host to begin…</div>
+        </div>`;
+      return;
+    }
+
+    // ── Build common top section ──
+    let html = `<div class="round-badge">Round ${state.currentRound} — Live Simulation</div>
+      <div class="crisis-label">Active Crisis</div>
+      <div class="crisis-text">${roundContent.crisis}</div>`;
+
+    // ── VOTING ──
+    if (p === 'VOTING') {
+      html += `
+        <div class="timer-wrap">
+          <div class="timer-label-small">Time Remaining</div>
+          <div class="timer" id="timer-val">5:00</div>
+        </div>
+        <div class="options-label">Your Strategies — Vote Now</div>`;
+      roundContent.options.forEach(o => {
+        html += `<div class="option-row">
+          <span class="opt-letter">${o.letter}</span>
+          <span class="opt-text">${o.text}</span>
+        </div>`;
+      });
+    }
+
+    // ── GRAPH_REVEAL / SCORE_REVEAL ──
+    if (p === 'GRAPH_REVEAL' || p === 'SCORE_REVEAL') {
+      const votes = state.votes || { A:0,B:0,C:0,D:0,E:0 };
+      const total = Object.values(votes).reduce((a,b)=>a+b,0);
+      const maxV  = Math.max(...Object.values(votes), 1);
+
+      html += `<div class="chart-section">
+        <div class="chart-title">
+          <span>Vote Distribution</span>
+          <span>${total} vote${total!==1?'s':''} cast</span>
+        </div>`;
+
+      roundContent.options.forEach(o => {
+        const v = votes[o.letter] || 0;
+        const pct = Math.round((v/maxV)*100);
+        const isWinner = v > 0 && v === maxV;
+        const ptsClass = p==='SCORE_REVEAL' ? `pts-${o.pts}` : '';
+        const ptsLabel = p==='SCORE_REVEAL' ? `<span class="opt-pts ${ptsClass}">${o.pts} pts</span>` : '';
+        html += `
+          <div class="bar-wrap">
+            <div class="bar-header">
+              <span><b style="color:var(--accent-bright)">${o.letter}</b> — ${o.text}</span>
+              <span>${v} vote${v!==1?'s':''}</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill${isWinner?' winner-bar':''}" style="width:${v>0?Math.max(pct,3):0}%">
+                ${v>0?`<span class="bar-fill-inner">${v}</span>`:''}
+              </div>
+            </div>
+          </div>`;
+      });
+
+      if (p === 'SCORE_REVEAL') {
+        html += `<div style="margin-top:20px;"><div class="options-label">Point Values Revealed</div>`;
+        roundContent.options.forEach(o => {
+          const isTop = o.pts === 100;
+          html += `<div class="option-row${isTop?' winner':''}">
+            <span class="opt-letter">${o.letter}</span>
+            <span class="opt-text">${o.text}</span>
+            <span class="opt-pts pts-${o.pts}">${o.pts} pts</span>
+          </div>`;
+        });
+        html += '</div>';
+      }
+
+      html += '</div>';
+    }
+
+    // ── SAP_REVEAL ──
+    if (p === 'SAP_REVEAL') {
+      html += `
+        <div class="sap-section">
+          <div class="tax-box">
+            <div class="sap-label" style="color:#fca5a5;">${roundContent.sapReveal.taxTitle}</div>
+            <div class="sap-body" style="color:#fecaca;">${roundContent.sapReveal.taxBody}</div>
+          </div>
+          <div class="sap-box">
+            <div class="sap-label" style="color:#6ee7b7;">${roundContent.sapReveal.solutionTitle}</div>
+            <div class="sap-body" style="color:#d1fae5;">${roundContent.sapReveal.solutionBody}</div>
+          </div>
+        </div>`;
+    }
+
+    // ── LEADERBOARD ──
+    if (p === 'LEADERBOARD') {
+      html += `<div class="lb-title">Current Standings</div>`;
+      
+      // Sort dynamically by score descending
+      const sortedLeaderboard = [...state.leaderboard].sort((a,b) => b.score - a.score);
+      const isCompact = state.leaderboard.length > 6;
+      
+      sortedLeaderboard.forEach((t,i) => {
+        const rank = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1).toString();
+        html += `<div class="lb-row${i===0?' first':''}${isCompact?' compact':''}">
+          <div class="lb-rank">${rank}</div>
+          <div class="lb-name">${t.name}</div>
+          <div class="lb-score">${t.score} pts</div>
+        </div>`;
+      });
+    }
+
+    mc.innerHTML = html;
+
+    // Start timer after DOM is updated
+    if (p === 'VOTING' && state.timerStart) {
+      startLocalTimer(state.timerStart, state.timerDuration || 300);
+    } else {
+      stopTimer();
+    }
+  }
+
+  // ── WebSocket ────────────────────────────────────────────────────────────────
+  let ws;
+  function connectWS() {
+    ws = new WebSocket(`ws://${location.host}`);
+    ws.onmessage = (e) => {
+      const { type, state } = JSON.parse(e.data);
+      if (type === 'STATE_UPDATE') render(state);
+    };
+    ws.onclose = () => setTimeout(connectWS, 2000);
+  }
+  connectWS();
+</script>
+</body>
+</html>

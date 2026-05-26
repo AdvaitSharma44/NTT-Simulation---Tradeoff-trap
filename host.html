@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trade-Off Trap — Host Panel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body { background: var(--bg-900); padding: 0; margin: 0; font-family: var(--font-sans); }
+
+    .layout {
+      display: flex;
+      height: 100vh;
+      gap: 0;
+    }
+
+    /* ── LEFT: Control Panel ── */
+    .panel-control {
+      width: 250px;
+      min-width: 240px;
+      background: var(--bg-800);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 20px 16px;
+      gap: 8px;
+      overflow-y: auto;
+    }
+
+    .panel-title {
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .phase-pill {
+      background: var(--bg-600);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent-bright);
+      text-align: center;
+      margin-bottom: 4px;
+    }
+
+    .section-label {
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin: 8px 0 4px;
+    }
+
+    .vote-tally {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+      margin: 4px 0;
+    }
+    .tally-cell {
+      background: var(--bg-600);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 6px 4px;
+      text-align: center;
+    }
+    .tally-letter { font-size: 0.6rem; color: var(--accent-bright); font-weight: 600; }
+    .tally-count  { font-size: 1rem; font-weight: 600; color: var(--text-primary); }
+
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      display: inline-block;
+      margin-right: 6px;
+    }
+    .status-dot.live { background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+    /* ── MAIN: Preview area ── */
+    .panel-preview {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 24px 20px;
+      gap: 16px;
+      overflow-y: auto;
+    }
+
+    .preview-label {
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 4px;
+    }
+
+    .preview-screens {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    .screen-frame {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--bg-800);
+      position: relative;
+    }
+
+    .screen-frame .frame-label {
+      background: var(--bg-600);
+      border-bottom: 1px solid var(--border);
+      padding: 6px 14px;
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    iframe {
+      width: 100%;
+      border: none;
+      background: transparent;
+    }
+
+    .display-iframe { height: calc(100vh - 160px); }
+    .player-iframe  { height: calc(100vh - 160px); }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ── Control Panel ── -->
+  <div class="panel-control">
+    <div class="logo-wrap" style="margin-bottom: 8px; align-self: flex-start; height: 36px;">
+      <img src="ntt-logo.png" alt="NTT DATA Logo" onload="autoCropLogo(this)">
+    </div>
+    <div class="panel-title">🎮 Host Control Panel</div>
+
+    <div style="font-size: 0.75rem; text-align: center; font-weight: 600; margin-bottom: 2px;">
+      ROUND <span id="round-num" style="color: var(--accent-bright);">1</span> OF 5
+    </div>
+    <div class="phase-pill" id="phase-pill">IDLE</div>
+
+    <div style="display:flex;align-items:center;font-size:0.7rem;color:var(--text-muted);justify-content:center;">
+      <span class="status-dot" id="ws-dot"></span>
+      <span id="ws-status">Connecting…</span>
+    </div>
+
+    <div class="divider"></div>
+    <div class="section-label">▶ Game Flow</div>
+
+    <button class="btn" id="btn-start" onclick="advance('VOTING')">
+      ▶&nbsp; Start Timer
+    </button>
+    <button class="btn" id="btn-graph" onclick="advance('GRAPH_REVEAL')" disabled>
+      📊&nbsp; Show Vote Graph
+    </button>
+    <button class="btn" id="btn-scores" onclick="advance('SCORE_REVEAL')" disabled>
+      🏆&nbsp; Reveal Scores
+    </button>
+    <button class="btn" id="btn-sap" onclick="advance('SAP_REVEAL')" disabled>
+      💡&nbsp; Show SAP Solution
+    </button>
+    <button class="btn" id="btn-lb" onclick="advance('LEADERBOARD')" disabled>
+      🥇&nbsp; Show Leaderboard
+    </button>
+
+    <div class="divider"></div>
+    <button class="btn btn-success" id="btn-next" onclick="nextRound()" disabled>
+      ⏭&nbsp; Next Round
+    </button>
+
+    <div class="divider"></div>
+    <div class="section-label">👥 Team Configuration</div>
+    <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+      <input type="number" id="team-count" value="5" min="1" max="100" 
+             style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-900); color: #fff; font-size: 0.85rem; font-weight: 600; text-align: center;">
+      <button class="btn" onclick="updateTeams()" style="width: auto; margin: 0; padding: 10px 14px; white-space: nowrap;">
+        Update
+      </button>
+    </div>
+
+    <div class="divider"></div>
+    <div class="section-label">🔧 Tools</div>
+
+    <button class="btn btn-success" onclick="simulateVotes()">
+      👥&nbsp; Simulate 5 Random Votes
+    </button>
+
+    <button class="btn btn-danger" onclick="resetRound()">
+      ↺&nbsp; Reset Round
+    </button>
+
+    <div class="divider"></div>
+    <div class="section-label">📊 Live Vote Tally</div>
+    <div class="vote-tally" id="vote-tally">
+      <div class="tally-cell"><div class="tally-letter">A</div><div class="tally-count" id="t-a">0</div></div>
+      <div class="tally-cell"><div class="tally-letter">B</div><div class="tally-count" id="t-b">0</div></div>
+      <div class="tally-cell"><div class="tally-letter">C</div><div class="tally-count" id="t-c">0</div></div>
+      <div class="tally-cell"><div class="tally-letter">D</div><div class="tally-count" id="t-d">0</div></div>
+      <div class="tally-cell"><div class="tally-letter">E</div><div class="tally-count" id="t-e">0</div></div>
+    </div>
+    <div style="font-size:0.65rem;color:var(--text-muted);text-align:center;">
+      Total: <span id="total-votes" style="color:var(--accent-bright);font-weight:600;">0</span> votes
+    </div>
+  </div>
+
+  <!-- ── Preview Area ── -->
+  <div class="panel-preview">
+    <div class="preview-label">Live Preview — Display Screen</div>
+    <div class="preview-screens">
+      <div class="screen-frame">
+        <div class="frame-label">
+          <span style="width:7px;height:7px;border-radius:50%;background:var(--accent);"></span>
+          Display Screen (Projector)
+        </div>
+        <iframe src="display.html" class="display-iframe" id="display-iframe"></iframe>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ── Dynamic Logo Auto-Crop & Transparency ──────────────────────────────────
+  function autoCropLogo(img) {
+    if (img.dataset.cropped === "true") return;
+    const tempImg = new Image();
+    tempImg.crossOrigin = "anonymous";
+    tempImg.src = img.src;
+    tempImg.onload = function() {
+      const canvas = document.createElement('canvas');
+      canvas.width = tempImg.width;
+      canvas.height = tempImg.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(tempImg, 0, 0);
+      let imgData;
+      try { imgData = ctx.getImageData(0, 0, canvas.width, canvas.height); } catch (e) { return; }
+      const data = imgData.data;
+      let minX = canvas.width, minY = canvas.height, maxX = 0, maxY = 0;
+      const threshold = 30;
+      for (let y = 0; y < canvas.height; y++) {
+        for (let x = 0; x < canvas.width; x++) {
+          const idx = (y * canvas.width + x) * 4;
+          if (data[idx] > threshold || data[idx+1] > threshold || data[idx+2] > threshold) {
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+          } else { data[idx+3] = 0; }
+        }
+      }
+      if (maxX >= minX && maxY >= minY) {
+        ctx.putImageData(imgData, 0, 0);
+        const croppedCanvas = document.createElement('canvas');
+        const pad = 8;
+        const cropX = Math.max(0, minX - pad);
+        const cropY = Math.max(0, minY - pad);
+        const cropW = Math.min(canvas.width - cropX, (maxX - minX) + 2 * pad);
+        const cropH = Math.min(canvas.height - cropY, (maxY - minY) + 2 * pad);
+        croppedCanvas.width = cropW;
+        croppedCanvas.height = cropH;
+        croppedCanvas.getContext('2d').drawImage(canvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+        img.dataset.cropped = "true";
+        img.src = croppedCanvas.toDataURL();
+        img.style.transform = 'none';
+        img.style.width = 'auto';
+        img.style.height = '100%';
+        img.style.objectFit = 'contain';
+        img.style.opacity = '1';
+        const parent = img.parentElement;
+        if (parent && parent.classList.contains('logo-wrap')) {
+          parent.style.width = 'auto';
+          parent.style.maxWidth = '200px';
+        }
+      }
+    };
+  }
+
+  // ── WebSocket ──────────────────────────────────────────────────────────────
+  let ws;
+  function connectWS() {
+    ws = new WebSocket(`ws://${location.host}`);
+
+    ws.onopen = () => {
+      document.getElementById('ws-dot').classList.add('live');
+      document.getElementById('ws-status').textContent = 'Connected';
+    };
+
+    ws.onclose = () => {
+      document.getElementById('ws-dot').classList.remove('live');
+      document.getElementById('ws-status').textContent = 'Reconnecting…';
+      setTimeout(connectWS, 2000);
+    };
+
+    ws.onmessage = (e) => {
+      const { type, state } = JSON.parse(e.data);
+      if (type === 'STATE_UPDATE') applyState(state);
+    };
+  }
+
+  // ── State application ──────────────────────────────────────────────────────
+  function applyState(state) {
+    const p = state.phase;
+    document.getElementById('phase-pill').textContent = p;
+    document.getElementById('round-num').textContent = state.currentRound;
+
+    // Vote tally
+    ['A','B','C','D','E'].forEach(l => {
+      document.getElementById(`t-${l.toLowerCase()}`).textContent = state.votes[l] ?? 0;
+    });
+    const total = Object.values(state.votes).reduce((a,b)=>a+b,0);
+    document.getElementById('total-votes').textContent = total;
+
+    // Button enable logic
+    const phases = ['IDLE','VOTING','GRAPH_REVEAL','SCORE_REVEAL','SAP_REVEAL','LEADERBOARD'];
+    const idx = phases.indexOf(p);
+    
+    document.getElementById('btn-start').disabled  = idx !== 0;
+    document.getElementById('btn-graph').disabled  = idx !== 1;
+    document.getElementById('btn-scores').disabled = idx !== 2;
+    document.getElementById('btn-sap').disabled    = idx !== 3;
+    document.getElementById('btn-lb').disabled     = idx !== 4;
+    
+    // Enable Next Round button only on Leaderboard phase and if not on Round 5
+    document.getElementById('btn-next').disabled = !(p === 'LEADERBOARD' && state.currentRound < 5);
+
+    // Active highlight
+    ['btn-start','btn-graph','btn-scores','btn-sap','btn-lb'].forEach((id,i) => {
+      document.getElementById(id).classList.toggle('active', i === idx - 1);
+    });
+    document.getElementById('btn-next').classList.toggle('active', p === 'LEADERBOARD' && state.currentRound < 5);
+
+    // Sync team count input
+    const teamInput = document.getElementById('team-count');
+    if (teamInput && document.activeElement !== teamInput) {
+      teamInput.value = state.leaderboard.length;
+    }
+  }
+
+  // ── API helpers ────────────────────────────────────────────────────────────
+  async function advance(phase) {
+    await fetch('/api/advance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phase })
+    });
+  }
+
+  async function nextRound() {
+    await fetch('/api/next-round', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  async function simulateVotes() {
+    await fetch('/api/simulate-votes', { method: 'POST' });
+  }
+
+  async function resetRound() {
+    await fetch('/api/reset', { method: 'POST' });
+  }
+
+  async function updateTeams() {
+    const count = parseInt(document.getElementById('team-count').value);
+    if (isNaN(count) || count < 1 || count > 100) {
+      alert("Please enter a valid number of teams between 1 and 100.");
+      return;
+    }
+    const res = await fetch('/api/update-teams', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ count })
+    });
+    const data = await res.json();
+    if (data.error) {
+      alert(data.error);
+    }
+  }
+
+  connectWS();
+</script>
+</body>
+</html>
