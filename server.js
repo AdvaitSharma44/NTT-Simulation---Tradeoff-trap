@@ -14,104 +14,116 @@ app.use(express.json());
 const ROUNDS = [
   {
     round: 1,
-    theme: "Supply Chain (The Component Squeeze)",
-    crisis: "An embargo has halted Taiwan microchip shipments. We have 14 days of inventory. B2B contracts carry massive penalties for delays, and B2C holiday demand is peaking.",
+    theme: "Finance (Month-End Close)",
+    crisis: "A manufacturing company operating multiple plants closes its books 12 days after month-end. The CFO wants faster reporting and more confidence in numbers without adding more manual reconciliation work. What is the most effective approach?",
     options: [
-      { letter: 'A', pts: 75,  text: 'Pay a 400% premium for grey-market chips and chartered air-freight to bypass the embargo.' },
-      { letter: 'B', pts: 25,  text: 'Run stock to zero while executives fly to Taiwan to manually negotiate an exemption.' },
-      { letter: 'C', pts: 100, text: 'Pivot B2C manufacturing to low-chip models, and manually scramble procurement to execute spot-buys for B2B chips globally.' },
-      { letter: 'D', pts: 0,   text: 'Issue preemptive Force Majeure notices to B2B clients and cancel Q3 deliveries.' },
-      { letter: 'E', pts: 50,  text: 'Halt B2C production completely. Hoard all remaining chips for B2B contracts to avoid legal penalties.' }
+      { letter: 'A', pts: 25,  text: "Set stricter deadlines for each plant's finance team and assign a dedicated person to chase submissions." },
+      { letter: 'B', pts: 50,  text: "Standardize reporting formats across all plants and require plant finance heads to sign off before submitting." },
+      { letter: 'C', pts: 75,  text: "Create a structured month-end calendar with fixed milestones, task owners, and a mid-close review." },
+      { letter: 'D', pts: 100, text: "Establish a dedicated close coordination team running parallel close tracks with a hard cut-off policy." }
     ],
     sapReveal: {
-      taxTitle: "⚠ Execution Tax — The Hidden Cost of Option C",
-      taxBody: "Manual spot-buys take 72 hours of exhausting labor.",
-      solutionTitle: "💡 SAP Solution",
-      solutionBody: "SAP IBP & Ariba automates spot-buys globally in minutes."
+      taxTitle: "⚠ Traditional Trade-off — The Hidden Execution Cost",
+      taxBody: "Data lives in disconnected systems across plants. Every close cycle requires the same manual effort — there is no structural fix, only a better-managed workaround.",
+      solutionTitle: "💡 SAP & NDBS Solution",
+      solutionBody: "SAP S/4HANA Public Cloud records all plant transactions into one unified ledger in real time, reducing close cycles to 1–2 days with no manual consolidation. NDBS deploys this through GROW with SAP with proven finance templates and change management support."
     }
   },
   {
     round: 2,
-    theme: "Finance (The Margin Collapse)",
-    crisis: "Rupee depreciation has spiked imported material costs by 18%. Gross margins have collapsed from 46% to 31%. If this holds, we miss our breakeven target and breach debt covenants.",
+    theme: "Supply Chain (Demand Swings)",
+    crisis: "An automotive supplier is struggling with sudden swings in customer demand. Some components run out while others pile up in warehouses. What is the best response?",
     options: [
-      { letter: 'A', pts: 50,  text: 'Institute a total freeze on Q3 Marketing, R&D, and Hiring budgets to artificially protect cash flow.' },
-      { letter: 'B', pts: 75,  text: 'Implement an immediate, flat 15% price hike across all channels to pass costs to the market.' },
-      { letter: 'C', pts: 0,   text: 'Secretly downgrade to cheaper, unvetted domestic components to instantly cut manufacturing costs.' },
-      { letter: 'D', pts: 100, text: 'Task the finance team to run profitability models to dynamically adjust B2C pricing, and aggressively renegotiate local supplier terms.' },
-      { letter: 'E', pts: 25,  text: 'Draw down on high-interest corporate debt to absorb the cost and keep market prices flat.' }
+      { letter: 'A', pts: 100, text: "Establish a formal S&OP process where sales forecasts directly drive procurement and production planning on a rolling monthly basis." },
+      { letter: 'B', pts: 50,  text: "Set fixed minimum and maximum stock levels and instruct procurement to reorder when components hit the minimum threshold." },
+      { letter: 'C', pts: 75,  text: "Hold regular cross-functional meetings between sales, production, and procurement to share signals and adjust plans collaboratively." },
+      { letter: 'D', pts: 25,  text: "Have the warehouse team do weekly stock counts and manually adjust purchase orders based on what they find." }
     ],
     sapReveal: {
-      taxTitle: "⚠ Execution Tax — The Hidden Cost of Option D",
-      taxBody: "Pulling data from siloed systems takes 5 days, bleeding ₹20 Cr in lost margin.",
-      solutionTitle: "💡 SAP Solution",
-      solutionBody: "SAP S/4HANA & Analytics Cloud run instant profitability simulations, pushing pricing updates live identically."
+      taxTitle: "⚠ Traditional Trade-off — The Hidden Execution Cost",
+      taxBody: "Demand signals, inventory positions, and supply constraints live in separate systems. Without a connected planning backbone, the business structurally cannot react fast enough.",
+      solutionTitle: "💡 SAP & NDBS Solution",
+      solutionBody: "SAP IBP connects demand, inventory, and supply into one live model — automatically adjusting plans as demand shifts. NDBS implements with automotive-specific templates calibrated to the industry's volatility patterns from day one."
     }
   },
   {
     round: 3,
-    theme: "HR (The Factory Rebellion)",
-    crisis: "Legacy payroll systems failed to track 24/7 factory overtime accurately. Attrition among specialized engineers has hit 28%. The union threatens a massive walkout in 72 hours if discrepancies aren't fixed.",
+    theme: "Operations (Machine Downtime)",
+    crisis: "A plant head is under pressure because repeated machine downtime is hurting on-time delivery and profitability. Which approach would create the greatest long-term value?",
     options: [
-      { letter: 'A', pts: 75,  text: 'Bypass the audit and approve a blanket 15% wage increase for all factory staff to appease the union.' },
-      { letter: 'B', pts: 100, text: 'Deploy an HR strike-team to manually audit timesheets, issue unbudgeted retention bonuses, and reorganize shifts.' },
-      { letter: 'C', pts: 0,   text: 'Enter union negotiations using fragmented spreadsheets to dispute claims line-by-line.' },
-      { letter: 'D', pts: 50,  text: 'Hire temporary agency workers at a massive premium to maintain production while HR audits data manually over the next month.' },
-      { letter: 'E', pts: 25,  text: 'Refuse demands, force mandatory overtime for non-union staff, and deploy legal counsel.' }
+      { letter: 'A', pts: 100, text: "Implement a reliability-centered maintenance program assessing machines by failure risk and criticality, with operator training and weekly KPI reviews." },
+      { letter: 'B', pts: 25,  text: "Keep a dedicated repair crew on standby and stock commonly replaced spare parts to reduce repair turnaround time." },
+      { letter: 'C', pts: 50,  text: "Require operators to log every breakdown with cause and duration, reviewed monthly by the maintenance supervisor." },
+      { letter: 'D', pts: 75,  text: "Develop a preventive maintenance schedule based on manufacturer guidelines and historical data, with dedicated windows in the production calendar." }
     ],
     sapReveal: {
-      taxTitle: "⚠ Execution Tax — The Hidden Cost of Option B",
-      taxBody: "Manual audits pause all HR functions, and reactive bonuses cost unbudgeted millions.",
-      solutionTitle: "💡 SAP Solution",
-      solutionBody: "SAP SuccessFactors natively unifies time-tracking and payroll, preventing the error and avoiding the strike entirely."
+      taxTitle: "⚠ Traditional Trade-off — The Hidden Execution Cost",
+      taxBody: "Traditional maintenance is built on averages and observation, not live machine data. Without real-time signals from equipment, failures that could have been predicted still cause unplanned downtime.",
+      solutionTitle: "💡 SAP & NDBS Solution",
+      solutionBody: "SAP S/4HANA with SAP Business AI and SAP BTP automatically triggers work orders based on live machine data before failures occur. NDBS connects plant floor systems to SAP, turning real-time signals into actionable predictive maintenance intelligence."
     }
   },
   {
     round: 4,
-    theme: "Customer Experience (The Server Crash)",
-    crisis: "A luxury hotel chain attempts to order 10,000 units via our B2B portal. Simultaneously, a viral campaign drives 500,000 users to our B2C site. Our siloed CRM and inventory servers crash, losing order visibility.",
+    theme: "Procurement (Supplier Risk)",
+    crisis: "A consumer products company relies on hundreds of suppliers across regions. The procurement head wants to control costs while reducing the risk of supplier disruption. What is the most effective strategy?",
     options: [
-      { letter: 'A', pts: 50,  text: 'Take the B2B hotel order manually via phone, leaving the website unstable for the consumers.' },
-      { letter: 'B', pts: 0,   text: 'Cancel the marketing campaign and reject the B2B order to completely reset the system load.' },
-      { letter: 'C', pts: 75,  text: 'Shut down the B2C website entirely to preserve all bandwidth for the massive B2B hotel order.' },
-      { letter: 'D', pts: 25,  text: 'Reboot servers and let users buy blindly; capture cash now and sort out oversold inventory with manual refunds later.' },
-      { letter: 'E', pts: 100, text: 'IT manually partitions servers, routing VIP B2B traffic to a secure portal and throwing up a static \"Out of Stock\" page for B2C.' }
+      { letter: 'A', pts: 50,  text: "Renegotiate contracts annually and push for lower prices from the top 20 suppliers." },
+      { letter: 'B', pts: 100, text: "Build a structured supplier performance scorecard reviewed quarterly with clear improvement targets." },
+      { letter: 'C', pts: 25,  text: "Award more volume to whichever supplier offers the lowest price at each procurement cycle." },
+      { letter: 'D', pts: 75,  text: "Dual-source all critical materials to reduce dependency on any single supplier." }
     ],
     sapReveal: {
-      taxTitle: "⚠ Execution Tax — The Hidden Cost of Option E",
-      taxBody: "The static page cannot capture consumer payments or gauge demand, leading to a massive loss of viral revenue.",
-      solutionTitle: "💡 SAP Solution",
-      solutionBody: "SAP CX Suite offers unified commerce that processes the B2B order while auto-switching the B2C site to \"Pre-Order\" with active payment capture."
+      taxTitle: "⚠ Traditional Trade-off — The Hidden Execution Cost",
+      taxBody: "Even a well-run scorecard is reactive — it captures what already happened. Without real-time visibility into supplier performance and risk, procurement is always a step behind the disruption it's trying to prevent.",
+      solutionTitle: "💡 SAP & NDBS Solution",
+      solutionBody: "SAP Ariba digitizes the full supplier lifecycle — from onboarding and risk monitoring to sourcing and contract compliance — with real-time visibility across all suppliers. NDBS configures Ariba to match existing sourcing workflows for fast adoption and immediate value."
     }
   },
   {
     round: 5,
-    theme: "IT & Infrastructure (The Integration Nightmare)",
-    crisis: "We just acquired a European competitor. Their legacy ERP cannot communicate with ours. End-of-quarter financial reporting is due to the board in 5 days.",
+    theme: "Commercial (Profit Margin)",
+    crisis: "A pharmaceutical company is growing revenue but the CEO is concerned that profit is not improving at the same pace. What should leadership prioritize first?",
     options: [
-      { letter: 'A', pts: 25,  text: 'Delay the global earnings report to the board until the two systems are manually merged.' },
-      { letter: 'B', pts: 100, text: 'Form an emergency IT & Finance task force to manually export, map, and consolidate core financial data using master spreadsheets.' },
-      { letter: 'C', pts: 50,  text: 'Force the subsidiary\'s finance team to work overnight to manually re-enter their entire quarter\'s data into our system.' },
-      { letter: 'D', pts: 0,   text: 'Operate as two completely separate companies financially and submit un-consolidated, estimated reports.' },
-      { letter: 'E', pts: 75,  text: 'Hire an IT contracting firm at a heavy premium to build a custom, temporary API bridge in 4 days.' }
+      { letter: 'A', pts: 25,  text: "Expand the sales team in high-growth territories to drive more revenue volume." },
+      { letter: 'B', pts: 100, text: "Conduct a detailed manual profitability analysis by product, customer, and sales channel." },
+      { letter: 'C', pts: 50,  text: "Increase list prices across all product categories to improve overall margin." },
+      { letter: 'D', pts: 75,  text: "Standardize discount approval processes and set stricter limits for the sales team." }
     ],
     sapReveal: {
-      taxTitle: "⚠ Execution Tax — The Hidden Cost of Option B",
-      taxBody: "The numbers are manual estimates, posing massive compliance risks while your team works 100-hour weeks.",
-      solutionTitle: "💡 SAP Solution",
-      solutionBody: "SAP BTP and Business ByDesign enable rapid two-tier ERP integration, mapping the subsidiary\'s data instantly and closing the quarter on time."
+      taxTitle: "⚠ Traditional Trade-off — The Hidden Execution Cost",
+      taxBody: "Even a thorough manual analysis is a snapshot in time. Without a connected view of sales, pricing, and costs in one place, commercial decisions are always based on information that is already stale.",
+      solutionTitle: "💡 SAP & NDBS Solution",
+      solutionBody: "SAP S/4HANA with SAP Analytics Cloud delivers a live view of profitability by customer, product, and channel — with no manual compilation. NDBS structures the implementation around the company's commercial model so the right margin dimensions are visible from day one."
+    }
+  },
+  {
+    round: 6,
+    theme: "Cross-Functional Collaboration",
+    crisis: "A life sciences company finds that operations, finance, and procurement teams work with different data and disconnected workflows, delaying decisions during supply disruptions. What is the best solution?",
+    options: [
+      { letter: 'A', pts: 25,  text: "Use email and messaging tools to escalate urgent decisions faster across functions." },
+      { letter: 'B', pts: 75,  text: "Hold a daily cross-functional standup to align operations, finance, and procurement on priorities." },
+      { letter: 'C', pts: 100, text: "Appoint a cross-functional integration team responsible for aligning data and coordinating decisions across departments." },
+      { letter: 'D', pts: 50,  text: "Implement a shared master data policy so all teams agree on common definitions and reporting formats." }
+    ],
+    sapReveal: {
+      taxTitle: "⚠ Traditional Trade-off — The Hidden Execution Cost",
+      taxBody: "A coordination team can't fix a systems problem. As long as operations, finance, and procurement run on separate data sources, every cross-functional decision requires manual effort — and during a disruption, that delay has real business consequences.",
+      solutionTitle: "💡 SAP & NDBS Solution",
+      solutionBody: "SAP S/4HANA creates a single data backbone across all three functions so decisions are based on one live source — no manual bridging needed. NDBS implements through GROW with SAP, bringing life sciences process expertise to reduce disruption response time significantly."
     }
   }
 ];
 
 // ─── Game State ────────────────────────────────────────────────────────────────
 let gameState = {
-  currentRound: 1,         // 1 to 5
+  currentRound: 1,         // 1 to 6
   phase: 'IDLE',           // IDLE | VOTING | GRAPH_REVEAL | SCORE_REVEAL | SAP_REVEAL | LEADERBOARD
   votes: { A: 0, B: 0, C: 0, D: 0, E: 0 },
   voterIds: new Set(),     // track who already voted
   timerStart: null,        // server timestamp when voting began
-  timerDuration: 300,      // seconds
+  timerDuration: 120,      // seconds (2 minutes)
   leaderboard: [
     { name: 'Table 1', score: 0 },
     { name: 'Table 2', score: 0 },
@@ -156,7 +168,7 @@ app.post('/api/advance', (req, res) => {
 });
 
 app.post('/api/next-round', (req, res) => {
-  if (gameState.currentRound >= 5) {
+  if (gameState.currentRound >= 6) {
     return res.status(400).json({ error: 'Already at final round' });
   }
 
@@ -172,7 +184,7 @@ app.post('/api/next-round', (req, res) => {
 });
 
 app.post('/api/simulate-votes', (req, res) => {
-  const opts = ['A', 'B', 'C', 'D', 'E'];
+  const opts = ['A', 'B', 'C', 'D'];
   const currentRoundData = ROUNDS[gameState.currentRound - 1];
 
   gameState.votes = { A: 0, B: 0, C: 0, D: 0, E: 0 };
@@ -241,7 +253,7 @@ app.post('/api/reset', (req, res) => {
 
 app.post('/api/vote', (req, res) => {
   const { voterId, tableId, option } = req.body;
-  if (!['A','B','C','D','E'].includes(option)) return res.status(400).json({ error: 'Bad option' });
+  if (!['A','B','C','D'].includes(option)) return res.status(400).json({ error: 'Bad option' });
   if (gameState.phase !== 'VOTING') return res.status(400).json({ error: 'Not in voting phase' });
   if (gameState.voterIds.has(voterId)) return res.status(400).json({ error: 'Already voted' });
 

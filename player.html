@@ -520,7 +520,7 @@
   let hasVoted    = false;
   let timerInterval = null;
   let serverTimerStart = null;
-  let timerDuration = 300;
+  let timerDuration = 120;
   let activeState = null;
 
   function startLocalTimer(start, dur) {
@@ -703,7 +703,7 @@
         <div class="crisis-column">
           <div class="timer-chip" id="timer-chip">
             <span>⏱</span>
-            <span id="player-timer">5:00</span>
+            <span id="player-timer">2:00</span>
           </div>
           <div class="crisis-label">Active Crisis</div>
           <div class="crisis-text">${roundContent.crisis}</div>
@@ -803,30 +803,85 @@
     }
 
     if (p === 'VOTING') {
-      if (state.timerStart) startLocalTimer(state.timerStart, state.timerDuration || 300);
+      if (state.timerStart) startLocalTimer(state.timerStart, state.timerDuration || 120);
       renderVotingScreen();
     } else if (p === 'LEADERBOARD') {
-      renderLockScreen(state.currentRound >= 5 ? 'Simulation complete!' : `Round ${state.currentRound} complete!`);
+      renderLockScreen(state.currentRound >= 6 ? 'Simulation complete!' : `Round ${state.currentRound} complete!`);
     } else {
       renderLockScreen();
     }
   }
 
-  // ── WebSocket ────────────────────────────────────────────────────────────────
+  // ── WebSocket with HTTP Polling Fallback ──────────────────────────────────────
   let ws;
+  let fallbackInterval = null;
+  let wsConnected = false;
+
   function connectWS() {
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    ws = new WebSocket(`${wsProtocol}//${location.host}`);
-    ws.onopen = () => {
-      ws.send(JSON.stringify({ type: 'REGISTER', voterId: voterId }));
-    };
-    ws.onmessage = (e) => {
-      const { type, state } = JSON.parse(e.data);
-      if (type === 'STATE_UPDATE') render(state);
-    };
-    ws.onclose = () => setTimeout(connectWS, 2000);
+    try {
+      ws = new WebSocket(`${wsProtocol}//${location.host}`);
+      
+      ws.onopen = () => {
+        console.log('WebSocket connected successfully');
+        wsConnected = true;
+        if (fallbackInterval) {
+          clearInterval(fallbackInterval);
+          fallbackInterval = null;
+        }
+        ws.send(JSON.stringify({ type: 'REGISTER', voterId: voterId }));
+      };
+      
+      ws.onmessage = (e) => {
+        const { type, state } = JSON.parse(e.data);
+        if (type === 'STATE_UPDATE') render(state);
+      };
+      
+      ws.onclose = () => {
+        console.log('WebSocket closed');
+        wsConnected = false;
+        startFallbackPolling();
+        setTimeout(connectWS, 4000);
+      };
+
+      ws.onerror = () => {
+        console.log('WebSocket error');
+        wsConnected = false;
+        startFallbackPolling();
+      };
+    } catch (e) {
+      console.error('WebSocket initialization failed:', e);
+      startFallbackPolling();
+    }
   }
+
+  function startFallbackPolling() {
+    if (fallbackInterval || wsConnected) return;
+    console.log('Starting HTTP polling fallback...');
+    pollState();
+    fallbackInterval = setInterval(pollState, 2500);
+  }
+
+  async function pollState() {
+    if (wsConnected) return;
+    try {
+      const res = await fetch('/api/state');
+      const state = await res.json();
+      render(state);
+    } catch (err) {
+      console.error('Failed to poll state:', err);
+    }
+  }
+
   connectWS();
+  
+  // Set a 3-second safety trigger to start polling if WebSocket is blocked
+  setTimeout(() => {
+    if (!wsConnected) {
+      console.log('WebSocket connection taking too long. Activating fallback polling.');
+      startFallbackPolling();
+    }
+  }, 3000);
 
   // Initial lock screen while connecting
   renderLockScreen('Connecting…');

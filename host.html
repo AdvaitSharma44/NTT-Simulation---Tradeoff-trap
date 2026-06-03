@@ -161,7 +161,7 @@
     <div class="panel-title">🎮 Host Control Panel</div>
 
     <div style="font-size: 0.75rem; text-align: center; font-weight: 600; margin-bottom: 2px;">
-      ROUND <span id="round-num" style="color: var(--accent-bright);">1</span> OF 5
+      ROUND <span id="round-num" style="color: var(--accent-bright);">1</span> OF 6
     </div>
     <div class="phase-pill" id="phase-pill">IDLE</div>
 
@@ -329,28 +329,76 @@
     };
   }
 
-  // ── WebSocket ──────────────────────────────────────────────────────────────
+  // ── WebSocket with HTTP Polling Fallback ──────────────────────────────────────
   let ws;
+  let fallbackInterval = null;
+  let wsConnected = false;
+
   function connectWS() {
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    ws = new WebSocket(`${wsProtocol}//${location.host}`);
+    try {
+      ws = new WebSocket(`${wsProtocol}//${location.host}`);
 
-    ws.onopen = () => {
-      document.getElementById('ws-dot').classList.add('live');
-      document.getElementById('ws-status').textContent = 'Connected';
-    };
+      ws.onopen = () => {
+        wsConnected = true;
+        document.getElementById('ws-dot').classList.add('live');
+        document.getElementById('ws-status').textContent = 'Connected (WS)';
+        if (fallbackInterval) {
+          clearInterval(fallbackInterval);
+          fallbackInterval = null;
+        }
+      };
 
-    ws.onclose = () => {
-      document.getElementById('ws-dot').classList.remove('live');
-      document.getElementById('ws-status').textContent = 'Reconnecting…';
-      setTimeout(connectWS, 2000);
-    };
+      ws.onclose = () => {
+        wsConnected = false;
+        document.getElementById('ws-dot').classList.remove('live');
+        document.getElementById('ws-status').textContent = 'Reconnecting…';
+        startFallbackPolling();
+        setTimeout(connectWS, 4000);
+      };
 
-    ws.onmessage = (e) => {
-      const { type, state } = JSON.parse(e.data);
-      if (type === 'STATE_UPDATE') applyState(state);
-    };
+      ws.onerror = () => {
+        wsConnected = false;
+        startFallbackPolling();
+      };
+
+      ws.onmessage = (e) => {
+        const { type, state } = JSON.parse(e.data);
+        if (type === 'STATE_UPDATE') applyState(state);
+      };
+    } catch (e) {
+      console.error('WebSocket failed:', e);
+      startFallbackPolling();
+    }
   }
+
+  function startFallbackPolling() {
+    if (fallbackInterval || wsConnected) return;
+    document.getElementById('ws-dot').classList.add('live');
+    document.getElementById('ws-status').textContent = 'Connected (Poll Fallback)';
+    pollState();
+    fallbackInterval = setInterval(pollState, 2500);
+  }
+
+  async function pollState() {
+    if (wsConnected) return;
+    try {
+      const res = await fetch('/api/state');
+      const state = await res.json();
+      applyState(state);
+    } catch (err) {
+      console.error('Failed to poll state:', err);
+    }
+  }
+
+  connectWS();
+
+  // Safety trigger: start polling if WebSocket is blocked after 3 seconds
+  setTimeout(() => {
+    if (!wsConnected) {
+      startFallbackPolling();
+    }
+  }, 3000);
 
   // ── State application ──────────────────────────────────────────────────────
   function applyState(state) {
@@ -375,14 +423,14 @@
     document.getElementById('btn-sap').disabled    = idx !== 3;
     document.getElementById('btn-lb').disabled     = idx !== 4;
     
-    // Enable Next Round button only on Leaderboard phase and if not on Round 5
-    document.getElementById('btn-next').disabled = !(p === 'LEADERBOARD' && state.currentRound < 5);
+    // Enable Next Round button only on Leaderboard phase and if not on Round 6
+    document.getElementById('btn-next').disabled = !(p === 'LEADERBOARD' && state.currentRound < 6);
 
     // Active highlight
     ['btn-start','btn-graph','btn-scores','btn-sap','btn-lb'].forEach((id,i) => {
       document.getElementById(id).classList.toggle('active', i === idx - 1);
     });
-    document.getElementById('btn-next').classList.toggle('active', p === 'LEADERBOARD' && state.currentRound < 5);
+    document.getElementById('btn-next').classList.toggle('active', p === 'LEADERBOARD' && state.currentRound < 6);
 
     // Sync team count input
     const teamInput = document.getElementById('team-count');
