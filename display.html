@@ -357,10 +357,14 @@
   let timerDuration = 120;
 
   function startLocalTimer(start, dur) {
+    if (serverTimerStart === start && timerDuration === dur && timerInterval) {
+      return;
+    }
     serverTimerStart = start;
     timerDuration = dur;
     clearInterval(timerInterval);
     timerInterval = setInterval(tickTimer, 250);
+    tickTimer();
   }
 
   function stopTimer() {

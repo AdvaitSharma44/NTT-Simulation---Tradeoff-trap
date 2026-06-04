@@ -25,8 +25,8 @@ const ROUNDS = [
     sapReveal: {
       taxTitle: "⚠ Traditional Trade-off — The Hidden Execution Cost",
       taxBody: "Data lives in disconnected systems across plants. Every close cycle requires the same manual effort — there is no structural fix, only a better-managed workaround.",
-      solutionTitle: "💡 SAP & NDBS Solution",
-      solutionBody: "SAP S/4HANA Public Cloud records all plant transactions into one unified ledger in real time, reducing close cycles to 1–2 days with no manual consolidation. NDBS deploys this through GROW with SAP with proven finance templates and change management support."
+      solutionTitle: "💡 SAP & NTT DATA Business Solutions Solution",
+      solutionBody: "SAP S/4HANA Public Cloud records all plant transactions into one unified ledger in real time, reducing close cycles to 1–2 days with no manual consolidation. NTT DATA Business Solutions deploys this through GROW with SAP with proven finance templates and change management support."
     }
   },
   {
@@ -42,8 +42,8 @@ const ROUNDS = [
     sapReveal: {
       taxTitle: "⚠ Traditional Trade-off — The Hidden Execution Cost",
       taxBody: "Demand signals, inventory positions, and supply constraints live in separate systems. Without a connected planning backbone, the business structurally cannot react fast enough.",
-      solutionTitle: "💡 SAP & NDBS Solution",
-      solutionBody: "SAP IBP connects demand, inventory, and supply into one live model — automatically adjusting plans as demand shifts. NDBS implements with automotive-specific templates calibrated to the industry's volatility patterns from day one."
+      solutionTitle: "💡 SAP & NTT DATA Business Solutions Solution",
+      solutionBody: "SAP IBP connects demand, inventory, and supply into one live model — automatically adjusting plans as demand shifts. NTT DATA Business Solutions implements with automotive-specific templates calibrated to the industry's volatility patterns from day one."
     }
   },
   {
@@ -59,8 +59,8 @@ const ROUNDS = [
     sapReveal: {
       taxTitle: "⚠ Traditional Trade-off — The Hidden Execution Cost",
       taxBody: "Traditional maintenance is built on averages and observation, not live machine data. Without real-time signals from equipment, failures that could have been predicted still cause unplanned downtime.",
-      solutionTitle: "💡 SAP & NDBS Solution",
-      solutionBody: "SAP S/4HANA with SAP Business AI and SAP BTP automatically triggers work orders based on live machine data before failures occur. NDBS connects plant floor systems to SAP, turning real-time signals into actionable predictive maintenance intelligence."
+      solutionTitle: "💡 SAP & NTT DATA Business Solutions Solution",
+      solutionBody: "SAP S/4HANA with SAP Business AI and SAP BTP automatically triggers work orders based on live machine data before failures occur. NTT DATA Business Solutions connects plant floor systems to SAP, turning real-time signals into actionable predictive maintenance intelligence."
     }
   },
   {
@@ -76,8 +76,8 @@ const ROUNDS = [
     sapReveal: {
       taxTitle: "⚠ Traditional Trade-off — The Hidden Execution Cost",
       taxBody: "Even a well-run scorecard is reactive — it captures what already happened. Without real-time visibility into supplier performance and risk, procurement is always a step behind the disruption it's trying to prevent.",
-      solutionTitle: "💡 SAP & NDBS Solution",
-      solutionBody: "SAP Ariba digitizes the full supplier lifecycle — from onboarding and risk monitoring to sourcing and contract compliance — with real-time visibility across all suppliers. NDBS configures Ariba to match existing sourcing workflows for fast adoption and immediate value."
+      solutionTitle: "💡 SAP & NTT DATA Business Solutions Solution",
+      solutionBody: "SAP Ariba digitizes the full supplier lifecycle — from onboarding and risk monitoring to sourcing and contract compliance — with real-time visibility across all suppliers. NTT DATA Business Solutions configures Ariba to match existing sourcing workflows for fast adoption and immediate value."
     }
   },
   {
@@ -93,8 +93,8 @@ const ROUNDS = [
     sapReveal: {
       taxTitle: "⚠ Traditional Trade-off — The Hidden Execution Cost",
       taxBody: "Even a thorough manual analysis is a snapshot in time. Without a connected view of sales, pricing, and costs in one place, commercial decisions are always based on information that is already stale.",
-      solutionTitle: "💡 SAP & NDBS Solution",
-      solutionBody: "SAP S/4HANA with SAP Analytics Cloud delivers a live view of profitability by customer, product, and channel — with no manual compilation. NDBS structures the implementation around the company's commercial model so the right margin dimensions are visible from day one."
+      solutionTitle: "💡 SAP & NTT DATA Business Solutions Solution",
+      solutionBody: "SAP S/4HANA with SAP Analytics Cloud delivers a live view of profitability by customer, product, and channel — with no manual compilation. NTT DATA Business Solutions structures the implementation around the company's commercial model so the right margin dimensions are visible from day one."
     }
   },
   {
@@ -110,8 +110,8 @@ const ROUNDS = [
     sapReveal: {
       taxTitle: "⚠ Traditional Trade-off — The Hidden Execution Cost",
       taxBody: "A coordination team can't fix a systems problem. As long as operations, finance, and procurement run on separate data sources, every cross-functional decision requires manual effort — and during a disruption, that delay has real business consequences.",
-      solutionTitle: "💡 SAP & NDBS Solution",
-      solutionBody: "SAP S/4HANA creates a single data backbone across all three functions so decisions are based on one live source — no manual bridging needed. NDBS implements through GROW with SAP, bringing life sciences process expertise to reduce disruption response time significantly."
+      solutionTitle: "💡 SAP & NTT DATA Business Solutions Solution",
+      solutionBody: "SAP S/4HANA creates a single data backbone across all three functions so decisions are based on one live source — no manual bridging needed. NTT DATA Business Solutions implements through GROW with SAP, bringing life sciences process expertise to reduce disruption response time significantly."
     }
   }
 ];
@@ -255,6 +255,9 @@ app.post('/api/vote', (req, res) => {
   const { voterId, tableId, option } = req.body;
   if (!['A','B','C','D'].includes(option)) return res.status(400).json({ error: 'Bad option' });
   if (gameState.phase !== 'VOTING') return res.status(400).json({ error: 'Not in voting phase' });
+  if (gameState.timerStart && (Date.now() - gameState.timerStart) > (gameState.timerDuration * 1000)) {
+    return res.status(400).json({ error: 'Time has expired for this round' });
+  }
   if (gameState.voterIds.has(voterId)) return res.status(400).json({ error: 'Already voted' });
 
   gameState.votes[option]++;

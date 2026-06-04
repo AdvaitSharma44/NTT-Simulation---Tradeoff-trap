@@ -335,6 +335,12 @@
     .vote-btn:active {
       transform: scale(0.985);
     }
+    .vote-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      pointer-events: none;
+      transform: none !important;
+    }
     .vote-btn .v-letter {
       font-size: 0.75rem;
       font-weight: 700;
@@ -524,15 +530,31 @@
   let activeState = null;
 
   function startLocalTimer(start, dur) {
+    if (serverTimerStart === start && timerDuration === dur && timerInterval) {
+      return;
+    }
     serverTimerStart = start;
     timerDuration = dur;
     clearInterval(timerInterval);
     timerInterval = setInterval(tickTimer, 300);
+    tickTimer(); // Tick immediately to show correct initial state and prevent delay
   }
 
   function stopTimer() {
     clearInterval(timerInterval);
     timerInterval = null;
+  }
+
+  function disableVotingUI() {
+    const btns = document.querySelectorAll('.vote-btn');
+    btns.forEach(btn => {
+      btn.disabled = true;
+    });
+    const prompt = document.querySelector('.vote-prompt');
+    if (prompt) {
+      prompt.textContent = "⏰ Time's up! Waiting for next round...";
+      prompt.style.color = 'var(--red)';
+    }
   }
 
   function tickTimer() {
@@ -545,7 +567,10 @@
     el.textContent = `${m}:${s.toString().padStart(2,'0')}`;
     el.parentElement.className = 'timer-chip' +
       (remaining<=30?' danger': remaining<=60?' warn':'');
-    if (remaining <= 0) stopTimer();
+    if (remaining <= 0) {
+      stopTimer();
+      disableVotingUI();
+    }
   }
 
   // ── Table Selection Logic ───────────────────────────────────────────────────
@@ -652,6 +677,13 @@
   async function castVote(letter) {
     const tableId = sessionStorage.getItem('tableId');
     if (hasVoted || !tableId || !activeState) return;
+    
+    // Check if timer has expired
+    const elapsed = (Date.now() - serverTimerStart) / 1000;
+    if (elapsed >= timerDuration) {
+      alert("Time is up! You cannot submit a vote anymore.");
+      return;
+    }
     
     try {
       const res = await fetch('/api/vote', {
